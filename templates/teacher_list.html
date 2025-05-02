@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>👩‍🏫 Teachers</h2>
+<a href="{{ url_for('add_teacher') }}" class="btn btn-primary mb-3">Add Teacher</a>
+<table class="table table-striped">
+  <thead>
+    <tr><th>Name</th><th>Availability</th></tr>
+  </thead>
+  <tbody>
+    {% for t in teachers %}
+    <tr>
+      <td>{{ t.name }}</td>
+      <td>{{ t.availability }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
