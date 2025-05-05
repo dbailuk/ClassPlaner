@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ClassPlaner</title>
+    <title>{% block title %}ClassPlaner{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
@@ -11,12 +11,31 @@
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto">
             <li class="nav-item"><a class="nav-link" href="/teachers">Teachers</a></li>
+            <li class="nav-item"><a class="nav-link" href="/subjects">Subjects</a></li>
         </ul>
+        {% if current_user.is_authenticated %}
+        <form action="{{ url_for('logout') }}" method="post" class="d-inline">
+            <button class="btn btn-outline-light btn-sm">Logout</button>
+        </form>
+        {% endif %}
     </div>
 </nav>
 
 <div class="container mt-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
     {% block content %}{% endblock %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
