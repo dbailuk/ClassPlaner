@@ -9,3 +9,9 @@ class TeacherForm(FlaskForm):
 	week_hours = IntegerField('Weekly Hours', validators=[DataRequired(), NumberRange(min=1)])
 	subject = SelectMultipleField('Subject', coerce=int)
 	submit = SubmitField('Add Teacher')
+
+class SubjectForm(FlaskForm):
+	name = StringField('Subject Name', validators=[DataRequired()])
+	hours_per_week = IntegerField('Hours per Week', validators=[DataRequired(), NumberRange(min=1)])
+	submit = SubmitField('Save Subject')
+

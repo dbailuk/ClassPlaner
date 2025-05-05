@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">{{ 'Edit Teacher' if editing else 'Add New Teacher' }}</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.name.label(class="form-label") }}
+        {{ form.name(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.availability.label(class="form-label") }}
+        {{ form.availability(class="form-control") }}
+        <div class="form-text">E.g., Mon:1-3, Tue:2-5</div>
+    </div>
+
+    <div class="mb-3">
+        {{ form.week_hours.label(class="form-label") }}
+        {{ form.week_hours(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.subjects.label(class="form-label") }}
+        {{ form.subjects(class="form-select", multiple=True) }}
+    </div>
+
+    <div>
+        {{ form.submit(class="btn btn-primary", value=('Update' if editing else 'Add Teacher')) }}
+        <a href="{{ url_for('teacher_list') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

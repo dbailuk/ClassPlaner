@@ -5,7 +5,7 @@ from flask_babel import Babel
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-app = Flask(__name__, template_folder= 'templates')
+app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'randomkey123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///classplaner.db'
