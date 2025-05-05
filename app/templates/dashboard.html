@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1>📊 Dashboard</h1>
-<p>Welcome to ClassPlaner Admin!</p>
+<h2>Welcome to ClassPlaner</h2>
+<p class="lead">Hello, {{ current_user.username }}!</p>
+<p>Use the navigation bar to manage your teachers, subjects, and schedules.</p>
 {% endblock %}

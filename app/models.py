@@ -1,7 +1,7 @@
 from app import db
 from flask_login import UserMixin
 
-# Association table (many-to-many) for Teacher ↔ Subject
+# Association table (many-to-many) for Teacher Subject
 teacher_subject = db.Table('teacher_subject',
     db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id')),
     db.Column('subject_id', db.Integer, db.ForeignKey('subject.id'))

@@ -22,7 +22,14 @@
 
     <div class="mb-3">
         {{ form.subjects.label(class="form-label") }}
-        {{ form.subjects(class="form-select", multiple=True) }}
+        <div class="form-check">
+            {% for sub in form.subjects %}
+              <div>
+                {{ sub }}
+                {{ form.subjects.choices[loop.index0][1] }}
+              </div>
+            {% endfor %}
+          </div>
     </div>
 
     <div>

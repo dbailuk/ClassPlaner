@@ -1,13 +1,18 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, NumberRange, Length, EqualTo
 from app.models import Subject
 
 class TeacherForm(FlaskForm):
 	name = StringField('Name', validators=[DataRequired()])
-	availability = StringField('Availability (e.g., Mon:1-3, Tue:2-4)')
+	availability = StringField('Availability')
 	week_hours = IntegerField('Weekly Hours', validators=[DataRequired(), NumberRange(min=1)])
-	subject = SelectMultipleField('Subject', coerce=int)
+	subjects = SelectMultipleField(
+	'Subjects',
+	coerce=int,
+	option_widget=widgets.CheckboxInput(),
+	widget=widgets.ListWidget(prefix_label=False)
+)
 	submit = SubmitField('Add Teacher')
 
 class SubjectForm(FlaskForm):

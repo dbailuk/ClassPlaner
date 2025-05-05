@@ -3,13 +3,17 @@ from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db, login_manager
 from app.models import Teacher, Subject, User
-from app.forms import TeacherForm
+from app.forms import TeacherForm, SubjectForm, RegisterForm, LoginForm
 
 @login_manager.user_loader
 def load_user(user_id):
 	return User.query.get(int(user_id))
 
 @app.route('/')
+@login_required
+def home():
+    return redirect(url_for('dashboard'))
+
 @app.route('/dashboard')
 @login_required
 def dashboard():
@@ -45,7 +49,7 @@ def login():
 			flash('Invalid username or password', 'danger')
 	return render_template('login.html', form=form)
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 @login_required
 def logout():
 	logout_user()
@@ -62,7 +66,7 @@ def teacher_list():
 @login_required
 def add_teacher():
 	form = TeacherForm()
-	form.subject.choices = [(s.id, s.name) for s in Subject.query.all()]
+	form.subjects.choices = [(s.id, s.name) for s in Subject.query.all()]
 
 	if form.validate_on_submit():
 		new_teacher = Teacher(
@@ -71,8 +75,8 @@ def add_teacher():
 			week_hours = form.week_hours.data
 		)
 
-		selected_subjects = Subject.query.filter(Subject.id.in_(form.subject.data)).all()
-		new_teacher.subject = selected_subjects
+		selected_subjects = Subject.query.filter(Subject.id.in_(form.subjects.data)).all()
+		new_teacher.subjects = selected_subjects
 
 		db.session.add(new_teacher)
 		db.session.commit()
@@ -85,23 +89,26 @@ def add_teacher():
 @app.route('/edit_teacher/<int:teacher_id>', methods=["GET", "POST"])
 @login_required
 def edit_teacher(teacher_id):
-	teacher = Teacher.query.get_or_404(teacher_id)
-	form = TeacherForm(obj=Teacher)
-	form.subject.choices = [(s.id, s.name) for s in Subject.query.all()]
-	form.subject.data = [s.id for s in teacher.subjects]
+    teacher = Teacher.query.get_or_404(teacher_id)
+    form = TeacherForm(obj=teacher)
+    form.subjects.choices = [(s.id, s.name) for s in Subject.query.all()]
 
-	if form.validate_on_submit():
-		teacher.name = form.name.data
-		teacher.availability = form.availability.data
-		teacher.week_hours = form.week_hours.data
+    if request.method == 'GET':
+        form.subjects.data = [s.id for s in teacher.subjects]
 
-		selected_subjects = Subject.query.filter(Subject.id.in_(form.subject.data)).all()
-		teacher.subject = selected_subjects
+    if form.validate_on_submit():
+        teacher.name = form.name.data
+        teacher.availability = form.availability.data
+        teacher.week_hours = form.week_hours.data
 
-		db.session.commit()
-		flash('Teacher updated successfully!')
+        selected_subjects = Subject.query.filter(Subject.id.in_(form.subjects.data)).all()
+        teacher.subjects = selected_subjects
 
-	return redirect(url_for('teacher_list'))
+        db.session.commit()
+        flash('Teacher updated successfully!')
+        return redirect(url_for('teacher_list'))
+
+    return render_template('add_teacher.html', form=form, editing=True)
 
 @app.route('/delete-teacher/<int:teacher_id>', methods=['POST'])
 @login_required
@@ -120,7 +127,7 @@ def delete_teacher(teacher_id):
 @login_required
 def subject_list():
 	subjects = Subject.query.all()
-	return render_template(subject_list.html, subjects=subjects)
+	return render_template('subject_list.html', subjects=subjects)
 
 @app.route('/add-subject', methods=['GET', 'POST'])
 @login_required
@@ -136,7 +143,7 @@ def add_subject():
 		db.session.commit()
 
 		flash('Subject added successfully!')
-	return redirect(url_for('subject_list'))
+		return redirect(url_for('subject_list'))
 
 	return render_template('add_subject.html', form=form)
 
