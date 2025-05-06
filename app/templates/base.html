@@ -12,6 +12,8 @@
         <ul class="navbar-nav me-auto">
             <li class="nav-item"><a class="nav-link" href="/teachers">Teachers</a></li>
             <li class="nav-item"><a class="nav-link" href="/subjects">Subjects</a></li>
+            <li class="nav-item"><a class="nav-link" href="/class-groups">Class Groups</a></li>
+            <li class="nav-item"><a class="nav-link" href="/rooms">Rooms</a></li>
         </ul>
         {% if current_user.is_authenticated %}
         <form action="{{ url_for('logout') }}" method="post" class="d-inline">

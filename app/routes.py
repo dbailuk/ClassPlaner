@@ -2,8 +2,8 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db, login_manager
-from app.models import Teacher, Subject, User
-from app.forms import TeacherForm, SubjectForm, RegisterForm, LoginForm
+from app.models import Teacher, Subject, User, ClassGroup, Room
+from app.forms import TeacherForm, SubjectForm, RegisterForm, LoginForm, ClassGroupForm, RoomForm
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -105,7 +105,7 @@ def edit_teacher(teacher_id):
         teacher.subjects = selected_subjects
 
         db.session.commit()
-        flash('Teacher updated successfully!')
+        flash('Teacher updated successfully!', 'success')
         return redirect(url_for('teacher_list'))
 
     return render_template('add_teacher.html', form=form, editing=True)
@@ -158,7 +158,7 @@ def edit_subject(subject_id):
 		subject.hours_per_week = form.hours_per_week.data
 
 		db.session.commit()
-		flash('Subject updated successfully!')
+		flash('Subject updated successfully!', 'success')
 		return redirect(url_for('subject_list'))
 
 	return render_template('add_subject.html', form=form, editing=True)
@@ -175,3 +175,95 @@ def delete_subject(subject_id):
 		db.session.rollback()
 		flash('Could not delete subject. Error: {}'.format(e), 'danger')
 	return redirect(url_for('subject_list'))
+
+@app.route('/class-groups')
+@login_required
+def class_group_list():
+	groups = ClassGroup.query.all()
+	return render_template('class_group_list.html', groups=groups)
+
+@app.route('/add-class-group', methods=['GET', 'POST'])
+@login_required
+def add_class_group():
+	form = ClassGroupForm()
+	if form.validate_on_submit():
+		group = ClassGroup(name=form.name.data)
+		db.session.add(group)
+		db.session.commit()
+		flash('Class group added successfully!', 'success')
+		return redirect(url_for('class_group_list'))
+	return render_template('add_class_group.html', form=form)
+
+@app.route('/edit-class-group/<int:group_id>', methods=['GET', 'POST'])
+@login_required
+def edit_class_group(group_id):
+	group = ClassGroup.query.get_or_404(group_id)
+	form = ClassGroupForm(obj=group)
+	if form.validate_on_submit():
+		group.name = form.name.data
+		db.session.commit()
+		flash('Class group updated successfully!', 'success')
+		return redirect(url_for('class_group_list'))
+	return render_template('add_class_group.html', form=form, editing=True)
+
+@app.route('/delete-class-group/<int:group_id>', methods=['POST'])
+@login_required
+def delete_class_group(group_id):
+	group = ClassGroup.query.get_or_404(group_id)
+	try:
+		db.session.delete(group)
+		db.session.commit()
+		flash('Class group deleted successfully.', 'success')
+	except Exception as e:
+		db.session.rollback()
+		flash(f'Error deleting group: {e}', 'danger')
+	return redirect(url_for('class_group_list'))
+
+@app.route('/rooms')
+@login_required
+def room_list():
+	rooms = Room.query.all()
+	return render_template('room_list.html', rooms=rooms)
+
+@app.route('/add-room', methods=['GET', 'POST'])
+@login_required
+def add_room():
+    form = RoomForm()
+    if form.validate_on_submit():
+        room = Room(
+            name=form.name.data,
+            type=form.type.data,
+            capacity=form.capacity.data
+        )
+        db.session.add(room)
+        db.session.commit()
+        flash('Room added successfully!', 'success')
+        return redirect(url_for('room_list'))
+    return render_template('add_room.html', form=form)
+
+@app.route('/edit-room/<int:room_id>', methods=['GET', 'POST'])
+@login_required
+def edit_room(room_id):
+    room = Room.query.get_or_404(room_id)
+    form = RoomForm(obj=room)
+    if form.validate_on_submit():
+        room.name = form.name.data
+        room.type = form.type.data
+        room.capacity = form.capacity.data
+        db.session.commit()
+        flash('Room updated successfully!', 'success')
+        return redirect(url_for('room_list'))
+    return render_template('add_room.html', form=form, editing=True)
+
+@app.route('/delete-room/<int:room_id>', methods=['POST'])
+@login_required
+def delete_room(room_id):
+    room = Room.query.get_or_404(room_id)
+    try:
+        db.session.delete(room)
+        db.session.commit()
+        flash('Room deleted successfully.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting room: {e}', 'danger')
+    return redirect(url_for('room_list'))

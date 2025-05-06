@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets
-from wtforms.validators import DataRequired, NumberRange, Length, EqualTo
+from wtforms.validators import DataRequired, NumberRange, Length, EqualTo, Optional
 from app.models import Subject
 
 class TeacherForm(FlaskForm):
@@ -21,13 +21,23 @@ class SubjectForm(FlaskForm):
 	submit = SubmitField('Save Subject')
 
 class RegisterForm(FlaskForm):
-	username = StringField('Username', validators=[DataRequired(), Length(min = 3, max = 50)])
+	username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
 	password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=30)])
 	confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
 	submit = SubmitField('Register')
 	
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    submit = SubmitField('Login')
+	username = StringField('Username', validators=[DataRequired()])
+	password = PasswordField('Password', validators=[DataRequired()])
+	submit = SubmitField('Login')
+
+class ClassGroupForm(FlaskForm):
+	name = StringField('Group Name', validators=[DataRequired(), Length(min=1, max=50)])
+	submit = SubmitField('Save Group')
+
+class RoomForm(FlaskForm):
+	name = StringField('Room Name', validators=[DataRequired(), Length(min=1, max=50)])
+	type = StringField('Room Type (optional)', validators=[Optional(), Length(max=50)])
+	capacity = IntegerField('Capacity (optional)', validators=[Optional(), NumberRange(min=1)])
+	submit = SubmitField('Save Room')
 
