@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Add Timetable Entry</h2>
+<form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.class_id.label(class="form-label") }}
+        {{ form.class_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.subject_id.label(class="form-label") }}
+        {{ form.subject_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.teacher_id.label(class="form-label") }}
+        {{ form.teacher_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.room_id.label(class="form-label") }}
+        {{ form.room_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.period_id.label(class="form-label") }}
+        {{ form.period_id(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.weekday.label(class="form-label") }}
+        {{ form.weekday(class="form-select") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.notes.label(class="form-label") }}
+        {{ form.notes(class="form-control") }}
+    </div>
+
+    <div>
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('timetable_list') }}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

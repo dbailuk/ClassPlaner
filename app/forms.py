@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets, TimeField, SelectField, TextAreaField
 from wtforms.validators import DataRequired, NumberRange, Length, EqualTo, Optional
 from app.models import Subject
 
@@ -41,3 +41,18 @@ class RoomForm(FlaskForm):
 	capacity = IntegerField('Capacity (optional)', validators=[Optional(), NumberRange(min=1)])
 	submit = SubmitField('Save Room')
 
+class PeriodForm(FlaskForm):
+    name = StringField('Period Name', validators=[DataRequired(), Length(min=1, max=50)])
+    start_time = TimeField('Start Time', validators=[DataRequired()])
+    end_time = TimeField('End Time', validators=[DataRequired()])
+    submit = SubmitField('Save Period')
+
+class TimetableEntryForm(FlaskForm):
+    class_id = SelectField('Class Group', coerce=int, validators=[DataRequired()])
+    subject_id = SelectField('Subject', coerce=int, validators=[DataRequired()])
+    teacher_id = SelectField('Teacher', coerce=int, validators=[DataRequired()])
+    room_id = SelectField('Room', coerce=int, validators=[DataRequired()])
+    period_id = SelectField('Period', coerce=int, validators=[DataRequired()])
+    weekday = SelectField('Weekday', coerce=int, choices=[(1, 'Monday'), (2, 'Tuesday'), (3, 'Wednesday'), (4, 'Thursday'), (5, 'Friday')], validators=[DataRequired()])
+    notes = TextAreaField('Notes', validators=[Optional()])
+    submit = SubmitField('Save Entry')
