@@ -1,10 +1,16 @@
 from app import db
 from flask_login import UserMixin
 
-# Association table (many-to-many) for Teacher Subject
+# Association table for Teacher-Subject many-to-many
 teacher_subject = db.Table('teacher_subject',
     db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id'), primary_key=True),
     db.Column('subject_id', db.Integer, db.ForeignKey('subject.id'), primary_key=True)
+)
+
+class_group_teacher = db.Table(
+    'class_group_teacher',
+    db.Column('teacher_id', db.Integer, db.ForeignKey('teacher.id'), primary_key=True),
+    db.Column('class_group_id', db.Integer, db.ForeignKey('class_group.id'), primary_key=True)
 )
 
 class User(db.Model, UserMixin):
@@ -16,26 +22,40 @@ class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    availability = db.Column(db.Text)  # Custom format or JSON string
     week_hours = db.Column(db.Integer, nullable=False)
+    availability = db.Column(db.Text)  # Custom format or JSON string
     subjects = db.relationship('Subject', secondary=teacher_subject, backref='teachers')
-    timetable_entries = db.relationship('TimetableEntry', backref='teacher', lazy=True)
+    class_groups = db.relationship('ClassGroup', secondary='class_group_teacher', backref='teachers')
     user = db.relationship('User', backref='teachers')
-
-class Subject(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    name = db.Column(db.String(100), nullable=False)
-    hours_per_week = db.Column(db.Integer, nullable=False)
-    timetable_entries = db.relationship('TimetableEntry', backref='subject', lazy=True)
-    user = db.relationship('User', backref='subjects')
 
 class ClassGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(50), nullable=False)
-    timetable_entries = db.relationship('TimetableEntry', backref='class_group', lazy=True)
+    default_room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
     user = db.relationship('User', backref='class_groups')
+    default_room = db.relationship('Room', backref='default_class_groups')
+    subjects = db.relationship('ClassGroupSubject', backref='class_group', cascade="all, delete-orphan")
+
+class Subject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    name = db.Column(db.String(100), nullable=False)
+    default_hours_per_week = db.Column(db.Integer, nullable=False)
+    default_room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+    user = db.relationship('User', backref='subjects')
+    default_room = db.relationship('Room', backref='default_subjects')
+
+class ClassGroupSubject(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    class_group_id = db.Column(db.Integer, db.ForeignKey('class_group.id'), nullable=False)
+    subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
+    hours_per_week = db.Column(db.Integer, nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'))  # Optional room override
+    user = db.relationship('User', backref='class_group_subjects')
+    subject = db.relationship('Subject', backref='class_group_subjects')
+    room = db.relationship('Room', backref='subject_assignments')
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,7 +63,6 @@ class Room(db.Model):
     name = db.Column(db.String(50), nullable=False)
     type = db.Column(db.String(50))
     capacity = db.Column(db.Integer)
-    timetable_entries = db.relationship('TimetableEntry', backref='room', lazy=True)
     user = db.relationship('User', backref='rooms')
 
 class Period(db.Model):
@@ -52,19 +71,22 @@ class Period(db.Model):
     name = db.Column(db.String(50), nullable=False)
     start_time = db.Column(db.Time, nullable=False)
     end_time = db.Column(db.Time, nullable=False)
-    timetable_entries = db.relationship('TimetableEntry', backref='period', lazy=True)
     user = db.relationship('User', backref='periods')
 
 class TimetableEntry(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    class_id = db.Column(db.Integer, db.ForeignKey('class_group.id'), nullable=False)
+    class_group_id = db.Column(db.Integer, db.ForeignKey('class_group.id'), nullable=False)
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
     period_id = db.Column(db.Integer, db.ForeignKey('period.id'), nullable=False)
-    weekday = db.Column(db.Integer, nullable=False)
+    weekday = db.Column(db.Integer, nullable=False)  # 1-5 (Mon-Fri)
+    is_locked = db.Column(db.Boolean, default=False)
     notes = db.Column(db.Text)
-    is_manual = db.Column(db.Boolean, default=False)
+    class_group = db.relationship('ClassGroup', backref='timetable_entries')
+    subject = db.relationship('Subject', backref='timetable_entries')
+    teacher = db.relationship('Teacher', backref='timetable_entries')
+    room = db.relationship('Room', backref='timetable_entries')
+    period = db.relationship('Period', backref='timetable_entries')
     user = db.relationship('User', backref='timetable_entries')
-	

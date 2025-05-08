@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit" if editing else "Add" }} Assignment - ClassPlaner{% endblock %}
+{% block content %}
+<h2>{{ "Edit" if editing else "Add" }} Assignment</h2>
+<form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+        {{ form.class_group_id.label(class_="form-label") }}
+        {{ form.class_group_id(class_="form-select") }}
+    </div>
+    <div class="mb-3">
+        {{ form.subject_id.label(class_="form-label") }}
+        {{ form.subject_id(class_="form-select") }}
+    </div>
+    <div class="mb-3">
+        {{ form.hours_per_week.label(class_="form-label") }}
+        {{ form.hours_per_week(class_="form-control") }}
+    </div>
+    <div class="mb-3">
+        {{ form.room_id.label(class_="form-label") }}
+        {{ form.room_id(class_="form-select") }}
+    </div>
+    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Assignment</button>
+</form>
+{% endblock %}

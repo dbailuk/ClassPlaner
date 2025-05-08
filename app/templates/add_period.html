@@ -1,28 +1,21 @@
 {% extends "base.html" %}
-
+{% block title %}{{ "Edit" if editing else "Add" }} Period - ClassPlaner{% endblock %}
 {% block content %}
-<h2 class="mb-4">Add Period</h2>
-<form method="POST">
+<h2>{{ "Edit" if editing else "Add" }} Period</h2>
+<form method="post">
     {{ form.hidden_tag() }}
-
     <div class="mb-3">
-        {{ form.name.label(class="form-label") }}
-        {{ form.name(class="form-control") }}
+        {{ form.name.label(class_="form-label") }}
+        {{ form.name(class_="form-control") }}
     </div>
-
     <div class="mb-3">
-        {{ form.start_time.label(class="form-label") }}
-        {{ form.start_time(class="form-control", type="time") }}
+        {{ form.start_time.label(class_="form-label") }}
+        {{ form.start_time(class_="form-control") }}
     </div>
-
     <div class="mb-3">
-        {{ form.end_time.label(class="form-label") }}
-        {{ form.end_time(class="form-control", type="time") }}
+        {{ form.end_time.label(class_="form-label") }}
+        {{ form.end_time(class_="form-control") }}
     </div>
-
-    <div>
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('period_list') }}" class="btn btn-secondary">Cancel</a>
-    </div>
+    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Period</button>
 </form>
 {% endblock %}

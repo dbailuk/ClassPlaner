@@ -1,28 +1,21 @@
 {% extends "base.html" %}
-
+{% block title %}{{ "Edit" if editing else "Add" }} Room - ClassPlaner{% endblock %}
 {% block content %}
-<h2 class="mb-4">Add Room</h2>
-<form method="POST">
+<h2>{{ "Edit" if editing else "Add" }} Room</h2>
+<form method="post">
     {{ form.hidden_tag() }}
-
     <div class="mb-3">
-        {{ form.name.label(class="form-label") }}
-        {{ form.name(class="form-control") }}
+        {{ form.name.label(class_="form-label") }}
+        {{ form.name(class_="form-control") }}
     </div>
-
     <div class="mb-3">
-        {{ form.type.label(class="form-label") }}
-        {{ form.type(class="form-control") }}
+        {{ form.type.label(class_="form-label") }}
+        {{ form.type(class_="form-control") }}
     </div>
-
     <div class="mb-3">
-        {{ form.capacity.label(class="form-label") }}
-        {{ form.capacity(class="form-control") }}
+        {{ form.capacity.label(class_="form-label") }}
+        {{ form.capacity(class_="form-control") }}
     </div>
-
-    <div>
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('room_list') }}" class="btn btn-secondary">Cancel</a>
-    </div>
+    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Room</button>
 </form>
 {% endblock %}

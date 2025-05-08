@@ -1,18 +1,17 @@
 {% extends "base.html" %}
-
+{% block title %}{{ "Edit" if editing else "Add" }} Class Group - ClassPlaner{% endblock %}
 {% block content %}
-<h2 class="mb-4">Add Class Group</h2>
-<form method="POST">
+<h2>{{ "Edit" if editing else "Add" }} Class Group</h2>
+<form method="post">
     {{ form.hidden_tag() }}
-
     <div class="mb-3">
-        {{ form.name.label(class="form-label") }}
-        {{ form.name(class="form-control") }}
+        {{ form.name.label(class_="form-label") }}
+        {{ form.name(class_="form-control") }}
     </div>
-
-    <div>
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('class_group_list') }}" class="btn btn-secondary">Cancel</a>
+    <div class="mb-3">
+        {{ form.default_room_id.label(class_="form-label") }}
+        {{ form.default_room_id(class_="form-select") }}
     </div>
+    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Class Group</button>
 </form>
 {% endblock %}

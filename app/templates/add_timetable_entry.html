@@ -1,48 +1,43 @@
 {% extends "base.html" %}
-
+{% block title %}{{ "Edit" if editing else "Add" }} Timetable Entry - ClassPlaner{% endblock %}
 {% block content %}
-<h2 class="mb-4">Add Timetable Entry</h2>
-<form method="POST">
+<h2>{{ "Edit" if editing else "Add" }} Timetable Entry</h2>
+<form method="post">
     {{ form.hidden_tag() }}
-
     <div class="mb-3">
-        {{ form.class_id.label(class="form-label") }}
-        {{ form.class_id(class="form-select") }}
+        {{ form.class_group_id.label(class_="form-label") }}
+        {{ form.class_group_id(class_="form-select") }}
     </div>
-
     <div class="mb-3">
-        {{ form.subject_id.label(class="form-label") }}
-        {{ form.subject_id(class="form-select") }}
+        {{ form.subject_id.label(class_="form-label") }}
+        {{ form.subject_id(class_="form-select") }}
     </div>
-
     <div class="mb-3">
-        {{ form.teacher_id.label(class="form-label") }}
-        {{ form.teacher_id(class="form-select") }}
+        {{ form.teacher_id.label(class_="form-label") }}
+        {{ form.teacher_id(class_="form-select") }}
     </div>
-
     <div class="mb-3">
-        {{ form.room_id.label(class="form-label") }}
-        {{ form.room_id(class="form-select") }}
+        {{ form.room_id.label(class_="form-label") }}
+        {{ form.room_id(class_="form-select") }}
     </div>
-
     <div class="mb-3">
-        {{ form.period_id.label(class="form-label") }}
-        {{ form.period_id(class="form-select") }}
+        {{ form.period_id.label(class_="form-label") }}
+        {{ form.period_id(class_="form-select") }}
     </div>
-
     <div class="mb-3">
-        {{ form.weekday.label(class="form-label") }}
-        {{ form.weekday(class="form-select") }}
+        {{ form.weekday.label(class_="form-label") }}
+        {{ form.weekday(class_="form-control") }}
+        <small class="form-text text-muted">Enter 1 for Monday, 5 for Friday</small>
     </div>
-
     <div class="mb-3">
-        {{ form.notes.label(class="form-label") }}
-        {{ form.notes(class="form-control") }}
+        {{ form.is_locked.label(class_="form-label") }}
+        {{ form.is_locked(class_="form-select") }}
+        <small class="form-text text-muted">Lock entry to not allow overriding</small>
     </div>
-
-    <div>
-        {{ form.submit(class="btn btn-primary") }}
-        <a href="{{ url_for('timetable_list') }}" class="btn btn-secondary">Cancel</a>
+    <div class="mb-3">
+        {{ form.notes.label(class_="form-label") }}
+        {{ form.notes(class_="form-control", rows="3") }}
     </div>
+    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Entry</button>
 </form>
 {% endblock %}
