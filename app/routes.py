@@ -116,6 +116,11 @@ def edit_teacher(teacher_id):
 def delete_teacher(teacher_id):
     teacher = Teacher.query.filter_by(id=teacher_id, user_id=current_user.id).first_or_404()
     try:
+        TimetableEntry.query.filter_by(teacher_id=teacher_id, user_id=current_user.id).delete()
+
+        # Remove teacher from any associated subjects
+        teacher.subjects.clear()
+
         db.session.delete(teacher)
         db.session.commit()
         flash('Teacher deleted successfully.', 'success')
@@ -180,6 +185,11 @@ def edit_subject(subject_id):
 def delete_subject(subject_id):
     subject = Subject.query.filter_by(id=subject_id, user_id=current_user.id).first_or_404()
     try:
+        TimetableEntry.query.filter_by(subject_id=subject_id, user_id=current_user.id).delete()
+
+        # Remove this subject from any associated teachers
+        subject.teachers.clear()
+
         db.session.delete(subject)
         db.session.commit()
         flash('Subject deleted successfully.', 'success')
@@ -241,6 +251,13 @@ def edit_class_group(group_id):
 def delete_class_group(group_id):
     group = ClassGroup.query.filter_by(id=group_id, user_id=current_user.id).first_or_404()
     try:
+        TimetableEntry.query.filter_by(class_group_id=group_id, user_id=current_user.id).delete()
+        # Remove any subject assignments for this class group
+        ClassGroupSubject.query.filter_by(class_group_id=group_id, user_id=current_user.id).delete()
+
+        # Clear associations with teachers
+        group.teachers.clear()
+
         db.session.delete(group)
         db.session.commit()
         flash('Class group deleted successfully.', 'success')
@@ -298,6 +315,17 @@ def edit_room(room_id):
 def delete_room(room_id):
     room = Room.query.filter_by(id=room_id, user_id=current_user.id).first_or_404()
     try:
+        TimetableEntry.query.filter_by(room_id=room_id, user_id=current_user.id).delete()
+
+        # Remove this room as a default room for any class groups
+        ClassGroup.query.filter_by(default_room_id=room_id, user_id=current_user.id).update({"default_room_id": None})
+
+        # Remove this room as a default room for any subjects
+        Subject.query.filter_by(default_room_id=room_id, user_id=current_user.id).update({"default_room_id": None})
+
+        # Remove this room from any class group subject overrides
+        ClassGroupSubject.query.filter_by(room_id=room_id, user_id=current_user.id).update({"room_id": None})
+
         db.session.delete(room)
         db.session.commit()
         flash('Room deleted successfully.', 'success')
@@ -352,6 +380,9 @@ def delete_period(period_id):
     period = Period.query.filter_by(id=period_id, user_id=current_user.id).first_or_404()
 
     try:
+         # Delete all timetable entries using this period
+        TimetableEntry.query.filter_by(period_id=period_id, user_id=current_user.id).delete()
+
         db.session.delete(period)
         db.session.commit()
         flash('Period deleted successfully!', 'success')
