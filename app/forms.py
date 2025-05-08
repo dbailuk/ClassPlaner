@@ -27,10 +27,11 @@ class ClassGroupForm(FlaskForm):
     submit = SubmitField('Save Class Group')
 
 class ClassGroupSubjectForm(FlaskForm):
-    class_group_id = SelectMultipleField('Class Group', coerce=int, choices=[])
-    subject_id = SelectMultipleField('Subject', coerce=int, choices=[])
-    hours_per_week = IntegerField('Hours per Week', validators=[DataRequired(), NumberRange(min=1)])
-    room_id = SelectMultipleField('Room (Optional, for overrides)', coerce=int, choices=[])
+    class_group_id = SelectField('Class Group', coerce=int, validators=[DataRequired()])
+    subject_id = SelectField('Subject', coerce=int, validators=[DataRequired()])
+    teacher_id = SelectField('Teacher', coerce=int, choices=[], validators=[])
+    hours_per_week = IntegerField('Hours per Week', validators=[DataRequired()])
+    room_id = SelectField('Room (Optional)', coerce=int, choices=[], validators=[])
     submit = SubmitField('Save Assignment')
 
 class RegisterForm(FlaskForm):

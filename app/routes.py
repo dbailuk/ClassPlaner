@@ -118,7 +118,6 @@ def delete_teacher(teacher_id):
     try:
         TimetableEntry.query.filter_by(teacher_id=teacher_id, user_id=current_user.id).delete()
 
-        # Remove teacher from any associated subjects
         teacher.subjects.clear()
 
         db.session.delete(teacher)
@@ -402,19 +401,21 @@ def class_group_subject_list():
 def add_class_group_subject():
     form = ClassGroupSubjectForm()
 
+    # Populate choices
     form.class_group_id.choices = [(cg.id, cg.name) for cg in ClassGroup.query.filter_by(user_id=current_user.id).all()]
     form.subject_id.choices = [(s.id, s.name) for s in Subject.query.filter_by(user_id=current_user.id).all()]
-    form.room_id.choices = [(r.id, r.name) for r in Room.query.filter_by(user_id=current_user.id).all()]
+    form.room_id.choices = [(0, "Default Group Room")] + [(r.id, r.name) for r in Room.query.filter_by(user_id=current_user.id).all()]
+    form.teacher_id.choices = [(t.id, t.name) for t in Teacher.query.filter_by(user_id=current_user.id).all()]
 
     if form.validate_on_submit():
         assignment = ClassGroupSubject(
             user_id=current_user.id,
-            class_group_id=form.class_group_id.data[0],
-            subject_id=form.subject_id.data[0],
+            class_group_id=form.class_group_id.data,
+            subject_id=form.subject_id.data,
+            teacher_id=form.teacher_id.data if form.teacher_id.data != 0 else None,
             hours_per_week=form.hours_per_week.data,
-            room_id=form.room_id.data[0] if form.room_id.data else None
+            room_id=form.room_id.data if form.room_id.data else None
         )
-
         db.session.add(assignment)
         db.session.commit()
         flash('Class group subject assignment added successfully!', 'success')
@@ -428,22 +429,25 @@ def edit_class_group_subject(assignment_id):
     assignment = ClassGroupSubject.query.filter_by(id=assignment_id, user_id=current_user.id).first_or_404()
     form = ClassGroupSubjectForm(obj=assignment)
 
+    # Populate choices
     form.class_group_id.choices = [(cg.id, cg.name) for cg in ClassGroup.query.filter_by(user_id=current_user.id).all()]
     form.subject_id.choices = [(s.id, s.name) for s in Subject.query.filter_by(user_id=current_user.id).all()]
-    form.room_id.choices = [(r.id, r.name) for r in Room.query.filter_by(user_id=current_user.id).all()]
+    form.room_id.choices = [(0, "Default Group Room")] + [(r.id, r.name) for r in Room.query.filter_by(user_id=current_user.id).all()]
+    form.teacher_id.choices = [(t.id, t.name) for t in Teacher.query.filter_by(user_id=current_user.id).all()]
+
+    # Set the current values for the assignment
+    form.teacher_id.data = assignment.teacher_id if assignment.teacher_id else 0
 
     if form.validate_on_submit():
-        assignment.class_group_id = form.class_group_id.data[0]
-        assignment.subject_id = form.subject_id.data[0]
+        assignment.class_group_id = form.class_group_id.data
+        assignment.subject_id = form.subject_id.data
+        assignment.teacher_id = form.teacher_id.data if form.teacher_id.data != 0 else None
         assignment.hours_per_week = form.hours_per_week.data
-        assignment.room_id = form.room_id.data[0] if form.room_id.data else None
+        assignment.room_id = form.room_id.data if form.room_id.data else None
 
         db.session.commit()
-        flash('Class group subject assignment updated successfully!', 'success')
+        flash('Assignment updated successfully!', 'success')
         return redirect(url_for('class_group_subject_list'))
-
-    if assignment.room_id:
-        form.room_id.data = [assignment.room_id]
 
     return render_template('add_class_group_subject.html', form=form, editing=True)
 
@@ -455,14 +459,12 @@ def delete_class_group_subject(assignment_id):
     try:
         db.session.delete(assignment)
         db.session.commit()
-        flash('Class group subject assignment deleted successfully!', 'success')
+        flash('Assignment deleted successfully!', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error deleting assignment: {e}', 'danger')
 
     return redirect(url_for('class_group_subject_list'))
-
-
 
 @app.route('/timetable')
 @login_required

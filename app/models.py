@@ -23,9 +23,8 @@ class Teacher(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     week_hours = db.Column(db.Integer, nullable=False)
-    availability = db.Column(db.Text)  # Custom format or JSON string
+    availability = db.Column(db.Text)
     subjects = db.relationship('Subject', secondary=teacher_subject, backref='teachers')
-    class_groups = db.relationship('ClassGroup', secondary='class_group_teacher', backref='teachers')
     user = db.relationship('User', backref='teachers')
 
 class ClassGroup(db.Model):
@@ -33,9 +32,10 @@ class ClassGroup(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(50), nullable=False)
     default_room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
+
     user = db.relationship('User', backref='class_groups')
     default_room = db.relationship('Room', backref='default_class_groups')
-    subjects = db.relationship('ClassGroupSubject', backref='class_group', cascade="all, delete-orphan")
+    subjects = db.relationship('ClassGroupSubject', backref='parent_class_group', cascade="all, delete-orphan")
 
 class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -53,6 +53,10 @@ class ClassGroupSubject(db.Model):
     subject_id = db.Column(db.Integer, db.ForeignKey('subject.id'), nullable=False)
     hours_per_week = db.Column(db.Integer, nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))  # Optional room override
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=True)
+
+    class_group = db.relationship('ClassGroup', backref='class_group_subjects')
+    teacher = db.relationship('Teacher', backref='class_group_subjects')
     user = db.relationship('User', backref='class_group_subjects')
     subject = db.relationship('Subject', backref='class_group_subjects')
     room = db.relationship('Room', backref='subject_assignments')
