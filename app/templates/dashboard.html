@@ -1,7 +1,99 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard – ClassPlaner{% endblock %}
+
 {% block content %}
-<h2>Welcome to ClassPlaner</h2>
-<p class="lead">Hello, {{ current_user.username }}!</p>
-<p>Use the navigation bar to manage your teachers, subjects, and schedules.</p>
+  <h2>Your Master Timetable</h2>
+
+  <form method="post" action="{{ url_for('generate_schedule_route') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-success mb-3">
+    Generate Schedule
+  </button>
+</form>
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>Period ↓ / Day →</th>
+        <th>Monday</th><th>Tuesday</th><th>Wednesday</th>
+        <th>Thursday</th><th>Friday</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for period in periods %}
+        <tr>
+          <th>
+            {{ period.name }}
+            <br>
+            <small>{{ period.start_time.strftime("%H:%M") }}–{{ period.end_time.strftime("%H:%M") }}</small>
+          </th>
+          {% for d in range(1,6) %}
+            <td class="grid-cell"
+                data-weekday="{{ d }}"
+                data-period="{{ period.id }}">
+              {% set e = grid.get((d, period.id)) %}
+              {% if e %}
+                <div class="entry"
+                     draggable="true"
+                     data-entry-id="{{ e.id }}">
+                  <strong>{{ e.class_group.name }}</strong><br>
+                  {{ e.subject.name }}<br>
+                  {{ e.teacher.name }}<br>
+                  <em>{{ e.room.name }}</em>
+                </div>
+              {% endif %}
+            </td>
+          {% endfor %}
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let draggedEntryId = null;
+
+      // start drag
+      document.querySelectorAll(".entry").forEach(el => {
+        el.addEventListener("dragstart", ev => {
+          draggedEntryId = ev.target.dataset.entryId;
+        });
+      });
+
+      // allow drop + handle it
+      document.querySelectorAll(".grid-cell").forEach(cell => {
+        cell.addEventListener("dragover", ev => ev.preventDefault());
+        cell.addEventListener("drop", ev => {
+          ev.preventDefault();
+          const newWeek = cell.dataset.weekday;
+          const newPer  = cell.dataset.period;
+
+          fetch("{{ url_for('move_timetable_entry') }}", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+              entry_id: draggedEntryId,
+              weekday: parseInt(newWeek),
+              period_id: parseInt(newPer)
+            })
+          })
+          .then(r => r.json())
+          .then(js => {
+            if (js.success) {
+              // move the DOM node
+              const dragged = document.querySelector(`[data-entry-id='${draggedEntryId}']`);
+              cell.innerHTML = "";
+              cell.appendChild(dragged);
+            } else {
+              alert("Could not move: " + js.error);
+            }
+          });
+        });
+      });
+    });
+  </script>
 {% endblock %}

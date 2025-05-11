@@ -1,9 +1,9 @@
-#! C:\Users\Dima\Projects\ClassPlanner\venv\Scripts\python.exe
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_babel import Babel
 from flask_login import LoginManager
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 
@@ -17,5 +17,6 @@ migrate = Migrate(app, db)
 babel = Babel(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+csrf = CSRFProtect(app)
 
 from app import routes, models

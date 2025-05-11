@@ -2,6 +2,7 @@ from flask import render_template, request, redirect, url_for, flash
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import app, db, login_manager
+from app.schedule_generator import generate_schedule
 from app.models import Teacher, Subject, User, ClassGroup, Room, Period, TimetableEntry, ScheduleAssignment
 from app.forms import TeacherForm, SubjectForm, RegisterForm, LoginForm, ClassGroupForm, RoomForm, PeriodForm, TimetableEntryForm, ScheduleAssignmentForm
 
@@ -17,7 +18,34 @@ def home():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html')
+    # get the periods in time‐order
+    periods = Period.query.filter_by(user_id=current_user.id).order_by(Period.start_time).all()
+    # build a lookup: (weekday, period_id) → TimetableEntry
+    entries = TimetableEntry.query.filter_by(user_id=current_user.id).all()
+    grid = {
+      (e.weekday, e.period_id): e
+      for e in entries
+    }
+    return render_template('dashboard.html', periods=periods, grid=grid)
+
+@app.route('/move-entry', methods=['POST'])
+@login_required
+def move_timetable_entry():
+    data = request.get_json()
+    e = TimetableEntry.query.filter_by(
+          id=data["entry_id"], user_id=current_user.id
+        ).first_or_404()
+
+    # apply the change
+    e.weekday   = data["weekday"]
+    e.period_id = data["period_id"]
+    try:
+        db.session.commit()
+        return {"success": True}
+    except Exception as ex:
+        db.session.rollback()
+        return {"success": False, "error": str(ex)}, 400
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -130,8 +158,6 @@ def delete_teacher(teacher_id):
     teacher = Teacher.query.filter_by(id=teacher_id, user_id=current_user.id).first_or_404()
     try:
         TimetableEntry.query.filter_by(teacher_id=teacher_id, user_id=current_user.id).delete()
-
-        teacher.subjects.clear()
 
         db.session.delete(teacher)
         db.session.commit()
@@ -714,5 +740,35 @@ def delete_timetable_entry(entry_id):
         flash(f'Error deleting entry: {e}', 'danger')
     return redirect(url_for('timetable_list'))
 
+
+@app.route('/generate-schedule', methods=['POST'])
+@login_required
+def generate_schedule_route():
+    ok, sched = generate_schedule(current_user.id)
+    if not ok:
+        flash("Could not find a valid schedule. Try relaxing your constraints.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # 1) clear out any old entries
+    TimetableEntry.query.filter_by(user_id=current_user.id).delete()
+
+    # 2) add new entries, mapping only valid columns
+    for s in sched:
+        entry = TimetableEntry(
+            user_id=current_user.id,
+            class_group_id = s['group_id'],
+            subject_id     = s['subject_id'],
+            teacher_id     = s.get('teacher_id'),
+            room_id        = s.get('room_id'),
+            period_id      = s['period_id'],
+            weekday        = s['weekday'],
+            notes          = None,
+            is_locked      = False
+        )
+        db.session.add(entry)
+
+    db.session.commit()
+    flash("Schedule generated successfully!", "success")
+    return redirect(url_for('dashboard'))
 
 
