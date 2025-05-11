@@ -1,17 +1,23 @@
 {% extends "base.html" %}
 
+{% block head %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+{% endblock %}
+
 {% block title %}Dashboard – ClassPlaner{% endblock %}
 
 {% block content %}
   <h2>Your Master Timetable</h2>
 
+  {# Generate button #}
   <form method="post" action="{{ url_for('generate_schedule_route') }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button type="submit" class="btn btn-success mb-3">
-    Generate Schedule
-  </button>
-</form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-success mb-3">
+      Generate Schedule
+    </button>
+  </form>
 
+  {# Timetable grid #}
   <table class="table table-bordered">
     <thead>
       <tr>
@@ -24,25 +30,25 @@
       {% for period in periods %}
         <tr>
           <th>
-            {{ period.name }}
-            <br>
+            {{ period.name }}<br>
             <small>{{ period.start_time.strftime("%H:%M") }}–{{ period.end_time.strftime("%H:%M") }}</small>
           </th>
           {% for d in range(1,6) %}
             <td class="grid-cell"
                 data-weekday="{{ d }}"
                 data-period="{{ period.id }}">
-              {% set e = grid.get((d, period.id)) %}
-              {% if e %}
-                <div class="entry"
-                     draggable="true"
-                     data-entry-id="{{ e.id }}">
-                  <strong>{{ e.class_group.name }}</strong><br>
-                  {{ e.subject.name }}<br>
-                  {{ e.teacher.name }}<br>
-                  <em>{{ e.room.name }}</em>
-                </div>
-              {% endif %}
+              <div class="entries-list">
+                {% for e in grid.get((d, period.id), []) %}
+                  <div class="entry mb-1"
+                       draggable="true"
+                       data-entry-id="{{ e.id }}">
+                    <strong>{{ e.class_group.name }}</strong><br>
+                    {{ e.subject.name }}<br>
+                    {{ e.teacher.name }}<br>
+                    <em>{{ e.room.name }}</em>
+                  </div>
+                {% endfor %}
+              </div>
             </td>
           {% endfor %}
         </tr>
@@ -50,24 +56,25 @@
     </tbody>
   </table>
 
+  {# Drag & Drop JavaScript #}
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       let draggedEntryId = null;
 
-      // start drag
+      // When drag starts, record the entry ID
       document.querySelectorAll(".entry").forEach(el => {
         el.addEventListener("dragstart", ev => {
           draggedEntryId = ev.target.dataset.entryId;
         });
       });
 
-      // allow drop + handle it
+      // Allow dropping and handle the drop
       document.querySelectorAll(".grid-cell").forEach(cell => {
         cell.addEventListener("dragover", ev => ev.preventDefault());
         cell.addEventListener("drop", ev => {
           ev.preventDefault();
-          const newWeek = cell.dataset.weekday;
-          const newPer  = cell.dataset.period;
+          const newWeek = parseInt(cell.dataset.weekday, 10);
+          const newPer  = parseInt(cell.dataset.period, 10);
 
           fetch("{{ url_for('move_timetable_entry') }}", {
             method: "POST",
@@ -77,17 +84,15 @@
             },
             body: JSON.stringify({
               entry_id: draggedEntryId,
-              weekday: parseInt(newWeek),
-              period_id: parseInt(newPer)
+              weekday: newWeek,
+              period_id: newPer
             })
           })
           .then(r => r.json())
           .then(js => {
             if (js.success) {
-              // move the DOM node
               const dragged = document.querySelector(`[data-entry-id='${draggedEntryId}']`);
-              cell.innerHTML = "";
-              cell.appendChild(dragged);
+              cell.querySelector(".entries-list").appendChild(dragged);
             } else {
               alert("Could not move: " + js.error);
             }

@@ -22,10 +22,11 @@ def dashboard():
     periods = Period.query.filter_by(user_id=current_user.id).order_by(Period.start_time).all()
     # build a lookup: (weekday, period_id) → TimetableEntry
     entries = TimetableEntry.query.filter_by(user_id=current_user.id).all()
-    grid = {
-      (e.weekday, e.period_id): e
-      for e in entries
-    }
+    # build a list of entries per (weekday,period)
+    grid = {}
+    for e in entries:
+        key = (e.weekday, e.period_id)
+        grid.setdefault(key, []).append(e)
     return render_template('dashboard.html', periods=periods, grid=grid)
 
 @app.route('/move-entry', methods=['POST'])
