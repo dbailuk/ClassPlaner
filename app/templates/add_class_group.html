@@ -1,17 +1,30 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit" if editing else "Add" }} Class Group - ClassPlaner{% endblock %}
 {% block content %}
-<h2>{{ "Edit" if editing else "Add" }} Class Group</h2>
-<form method="post">
-    {{ form.hidden_tag() }}
-    <div class="mb-3">
-        {{ form.name.label(class_="form-label") }}
-        {{ form.name(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.default_room_id.label(class_="form-label") }}
-        {{ form.default_room_id(class_="form-select") }}
-    </div>
-    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Class Group</button>
-</form>
+<div class="container">
+    <h2>{{ "Edit" if editing else "Add" }} Class Group</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.name.label(class_="form-label") }}
+            {{ form.name(class_="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.default_room_id.label(class_="form-label") }}
+            {{ form.default_room_id(class_="form-select") }}
+            <small class="form-text text-muted">Select "No Room" if not required.</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.allowed_periods.label(class_="form-label") }}
+            {{ form.allowed_periods(class_="form-select", multiple=True) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Class Group</button>
+        <a href="{{ url_for('class_group_list') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

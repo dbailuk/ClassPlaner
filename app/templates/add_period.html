@@ -1,21 +1,32 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit" if editing else "Add" }} Period - ClassPlaner{% endblock %}
 {% block content %}
-<h2>{{ "Edit" if editing else "Add" }} Period</h2>
-<form method="post">
-    {{ form.hidden_tag() }}
-    <div class="mb-3">
-        {{ form.name.label(class_="form-label") }}
-        {{ form.name(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.start_time.label(class_="form-label") }}
-        {{ form.start_time(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.end_time.label(class_="form-label") }}
-        {{ form.end_time(class_="form-control") }}
-    </div>
-    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Period</button>
-</form>
+<div class="container">
+    <h2>{{ "Edit" if editing else "Add" }} Period</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.name.label(class_="form-label") }}
+            {{ form.name(class_="form-control") }}
+            <small class="form-text text-muted">Enter a short, descriptive name for this period (e.g., "Morning", "Lunch Break").</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.start_time.label(class_="form-label") }}
+            {{ form.start_time(class_="form-control") }}
+            <small class="form-text text-muted">Start time must be earlier than end time.</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.end_time.label(class_="form-label") }}
+            {{ form.end_time(class_="form-control") }}
+            <small class="form-text text-muted">End time must be later than start time.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Period</button>
+        <a href="{{ url_for('period_list') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

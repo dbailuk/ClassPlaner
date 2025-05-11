@@ -1,21 +1,32 @@
 {% extends "base.html" %}
 {% block title %}{{ "Edit" if editing else "Add" }} Room - ClassPlaner{% endblock %}
 {% block content %}
-<h2>{{ "Edit" if editing else "Add" }} Room</h2>
-<form method="post">
-    {{ form.hidden_tag() }}
-    <div class="mb-3">
-        {{ form.name.label(class_="form-label") }}
-        {{ form.name(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.type.label(class_="form-label") }}
-        {{ form.type(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.capacity.label(class_="form-label") }}
-        {{ form.capacity(class_="form-control") }}
-    </div>
-    <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Room</button>
-</form>
+<div class="container">
+    <h2>{{ "Edit" if editing else "Add" }} Room</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.name.label(class_="form-label") }}
+            {{ form.name(class_="form-control") }}
+            <small class="form-text text-muted">Enter a unique room name (e.g., "Room 101", "Computer Lab").</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.type.label(class_="form-label") }}
+            {{ form.type(class_="form-control") }}
+            <small class="form-text text-muted">Optionally specify the room type (e.g., "Lecture Hall", "Lab", "Gym").</small>
+        </div>
+
+        <div class="mb-3">
+            {{ form.capacity.label(class_="form-label") }}
+            {{ form.capacity(class_="form-control") }}
+            <small class="form-text text-muted">Enter the maximum capacity for this room. Leave empty if not applicable.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ "Update" if editing else "Save" }} Room</button>
+        <a href="{{ url_for('room_list') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

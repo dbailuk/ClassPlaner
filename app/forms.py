@@ -1,38 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets, TimeField, SelectField, TextAreaField
+from wtforms import StringField, IntegerField, PasswordField, SubmitField, SelectMultipleField, widgets, TimeField, SelectField, TextAreaField, BooleanField
 from wtforms.validators import DataRequired, NumberRange, Length, EqualTo, Optional
 from app.models import Subject
-
-class TeacherForm(FlaskForm):
-	name = StringField('Name', validators=[DataRequired()])
-	week_hours = IntegerField('Weekly Hours', validators=[DataRequired(), NumberRange(min=1)])
-	subjects = SelectMultipleField(
-	'Subjects',
-	coerce=int,
-	option_widget=widgets.CheckboxInput(),
-	widget=widgets.ListWidget(prefix_label=False)
-)
-	availability = TextAreaField("Availability(Optional)")
-	submit = SubmitField('Add Teacher')
-
-class SubjectForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    default_hours_per_week = IntegerField('Default Hours per Week', validators=[DataRequired(), NumberRange(min=1)])
-    default_room_id = SelectMultipleField('Default Room (Optional)', coerce=int, choices=[])
-    submit = SubmitField('Save Subject')
-
-class ClassGroupForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    default_room_id = SelectMultipleField('Default Room (Optional)', coerce=int, choices=[])
-    submit = SubmitField('Save Class Group')
-
-class ClassGroupSubjectForm(FlaskForm):
-    class_group_id = SelectField('Class Group', coerce=int, validators=[DataRequired()])
-    subject_id = SelectField('Subject', coerce=int, validators=[DataRequired()])
-    teacher_id = SelectField('Teacher', coerce=int, choices=[], validators=[])
-    hours_per_week = IntegerField('Hours per Week', validators=[DataRequired()])
-    room_id = SelectField('Room (Optional)', coerce=int, choices=[], validators=[])
-    submit = SubmitField('Save Assignment')
 
 class RegisterForm(FlaskForm):
 	username = StringField('Username', validators=[DataRequired(), Length(min=3, max=50)])
@@ -45,16 +14,94 @@ class LoginForm(FlaskForm):
 	password = PasswordField('Password', validators=[DataRequired()])
 	submit = SubmitField('Login')
 
+
+class TeacherForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    week_hours = IntegerField('Weekly Hours', validators=[DataRequired(), NumberRange(min=1)])
+
+    preferred_days = SelectMultipleField(
+        'Preferred Days (Optional)',
+        choices=[
+            (1, 'Monday'), (2, 'Tuesday'), (3, 'Wednesday'),
+            (4, 'Thursday'), (5, 'Friday')
+        ],
+        coerce=int,
+        option_widget=widgets.CheckboxInput(),
+        widget=widgets.ListWidget(prefix_label=False),
+        validators=[Optional()]
+    )
+
+    preferred_periods = SelectMultipleField(
+        'Preferred Periods (Optional)',
+        coerce=int,
+        choices=[],
+        option_widget=widgets.CheckboxInput(),
+        widget=widgets.ListWidget(prefix_label=False),
+        validators=[Optional()]
+    )
+
+    submit = SubmitField('Save Teacher')
+
+class SubjectForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    default_hours_per_week = IntegerField(
+        'Default Hours per Week', validators=[DataRequired(), NumberRange(min=1)]
+    )
+    default_room_id = SelectField(
+        'Default Room (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    submit = SubmitField('Save Subject')
+
 class ClassGroupForm(FlaskForm):
-	name = StringField('Group Name', validators=[DataRequired(), Length(min=1, max=50)])
-	default_room_id = SelectMultipleField('Default Room (Optional)', coerce=int, choices=[])
-	submit = SubmitField('Save Group')
+    name = StringField('Group Name', validators=[DataRequired(), Length(min=1, max=50)])
+    default_room_id = SelectField(
+        'Default Room (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    allowed_periods = SelectMultipleField(
+        'Allowed Periods',
+        coerce=int,
+        choices=[],
+        option_widget=widgets.CheckboxInput(),
+        widget=widgets.ListWidget(prefix_label=False),
+        validators=[Optional()]
+    )
+    submit = SubmitField('Save Class Group')
+
+class ScheduleAssignmentForm(FlaskForm):
+    class_group_id = SelectField(
+        'Class Group', coerce=int, validators=[DataRequired()]
+    )
+    subject_id = SelectField(
+        'Subject', coerce=int, validators=[DataRequired()]
+    )
+    teacher_id = SelectField(
+        'Teacher (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    hours_per_week = IntegerField(
+        'Hours per Week', validators=[DataRequired(), NumberRange(min=1)]
+    )
+    room_id = SelectField(
+        'Room (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    submit = SubmitField('Save Assignment')
 
 class RoomForm(FlaskForm):
-	name = StringField('Room Name', validators=[DataRequired(), Length(min=1, max=50)])
-	type = StringField('Room Type (optional)', validators=[Optional(), Length(max=50)])
-	capacity = IntegerField('Capacity (optional)', validators=[Optional(), NumberRange(min=1)])
-	submit = SubmitField('Save Room')
+    name = StringField('Room Name', validators=[DataRequired(), Length(min=1, max=50)])
+    type = StringField('Room Type (Optional)', validators=[Optional(), Length(max=50)])
+    capacity = IntegerField('Capacity (Optional)', validators=[Optional(), NumberRange(min=1)])
+    submit = SubmitField('Save Room')
 
 class PeriodForm(FlaskForm):
     name = StringField('Period Name', validators=[DataRequired(), Length(min=1, max=50)])
@@ -63,12 +110,32 @@ class PeriodForm(FlaskForm):
     submit = SubmitField('Save Period')
 
 class TimetableEntryForm(FlaskForm):
-    class_group_id = SelectMultipleField('Class Group', coerce=int, choices=[])
-    subject_id = SelectMultipleField('Subject', coerce=int, choices=[])
-    teacher_id = SelectMultipleField('Teacher', coerce=int, choices=[])
-    room_id = SelectMultipleField('Room', coerce=int, choices=[])
-    period_id = SelectMultipleField('Period', coerce=int, choices=[])
-    weekday = IntegerField('Weekday (1-5)', validators=[DataRequired(), NumberRange(min=1, max=5)])
-    notes = TextAreaField('Notes')
-    is_locked = SelectMultipleField('Lock this Entry?', coerce=bool, choices=[(False, 'No'), (True, 'Yes')])
+    class_group_id = SelectField(
+        'Class Group', coerce=int, validators=[DataRequired()]
+    )
+    subject_id = SelectField(
+        'Subject', coerce=int, validators=[DataRequired()]
+    )
+    teacher_id = SelectField(
+        'Teacher (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    room_id = SelectField(
+        'Room (Optional)',
+        coerce=int,
+        choices=[],
+        validators=[Optional()]
+    )
+    period_id = SelectField(
+        'Period', coerce=int, validators=[DataRequired()]
+    )
+    weekday = SelectField(
+        'Weekday', coerce=int,
+        choices=[(1, 'Monday'), (2, 'Tuesday'), (3, 'Wednesday'), (4, 'Thursday'), (5, 'Friday')],
+        validators=[DataRequired()]
+    )
+    is_locked = BooleanField('Lock this entry')
+    notes = TextAreaField('Notes', validators=[Optional()])
     submit = SubmitField('Save Entry')

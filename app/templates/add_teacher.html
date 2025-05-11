@@ -1,25 +1,34 @@
 {% extends "base.html" %}
 {% block title %}Add Teacher - ClassPlaner{% endblock %}
 {% block content %}
-<h2>Add Teacher</h2>
-<form method="post">
-    {{ form.hidden_tag() }}
-    <div class="mb-3">
-        {{ form.name.label(class_="form-label") }}
-        {{ form.name(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.week_hours.label(class_="form-label") }}
-        {{ form.week_hours(class_="form-control") }}
-    </div>
-    <div class="mb-3">
-        {{ form.availability.label(class_="form-label") }}
-        {{ form.availability(class_="form-control", rows="3") }}
-    </div>
-    <div class="mb-3">
-        {{ form.subjects.label(class_="form-label") }}
-        {{ form.subjects(class_="form-select", multiple=True) }}
-    </div>
-    <button type="submit" class="btn btn-primary">Save Teacher</button>
-</form>
+<div class="container">
+    <h2>{{ 'Edit Teacher' if editing else 'Add Teacher' }}</h2>
+
+    <form method="post">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            {{ form.name.label(class_="form-label") }}
+            {{ form.name(class_="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.week_hours.label(class_="form-label") }}
+            {{ form.week_hours(class_="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.preferred_days.label(class_="form-label") }}
+            {{ form.preferred_days(class_="form-select", multiple=True) }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.preferred_periods.label(class_="form-label") }}
+            {{ form.preferred_periods(class_="form-select", multiple=True) }}
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ 'Save Changes' if editing else 'Add Teacher' }}</button>
+        <a href="{{ url_for('teacher_list') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}
