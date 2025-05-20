@@ -18,11 +18,8 @@ def home():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    # get the periods in time‐order
     periods = Period.query.filter_by(user_id=current_user.id).order_by(Period.start_time).all()
-    # build a lookup: (weekday, period_id) → TimetableEntry
     entries = TimetableEntry.query.filter_by(user_id=current_user.id).all()
-    # build a list of entries per (weekday,period)
     grid = {}
     for e in entries:
         key = (e.weekday, e.period_id)
@@ -750,10 +747,8 @@ def generate_schedule_route():
         flash("Could not find a valid schedule. Try relaxing your constraints.", "danger")
         return redirect(url_for('dashboard'))
 
-    # 1) clear out any old entries
     TimetableEntry.query.filter_by(user_id=current_user.id).delete()
 
-    # 2) add new entries, mapping only valid columns
     for s in sched:
         entry = TimetableEntry(
             user_id=current_user.id,
