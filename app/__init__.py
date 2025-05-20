@@ -19,3 +19,5 @@ babel = Babel(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 csrf = CSRFProtect(app)
+
+from app import routes, models
