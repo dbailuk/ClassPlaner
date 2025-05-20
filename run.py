@@ -1,4 +1,3 @@
-#! C:\Users\Dima\Projects\ClassPlanner\venv\Scripts\python.exe
 from app import app
 import os
 
