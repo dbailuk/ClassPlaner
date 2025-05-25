@@ -1,6 +1,6 @@
 # ClassPlaner
 
-**ClassPlaner** is a Flask-based web application that helps schools and administrators automatically generate and manage weekly class timetables. It supports defining class groups, subjects, teachers (with working hours and preferences), rooms, and periods. Using a CP-SAT solver (Google OR-Tools), it produces conflict-free schedules that respect all hard constraints, and offers a drag-and-drop interface for manual adjustments.
+**ClassPlaner** is a Flask-based web application that helps schools and administrators automatically generate and manage weekly class timetables. It supports defining class groups, subjects, teachers (with working hours and preferences), rooms, and periods. Using a CP-SAT solver (Google OR-Tools), it produces conflict-free schedules that respect all hard constraints, and offers a drag-and-drop interface for manual adjustments. App can be accessed trough [link](https://classplanner-v1oj.onrender.com/dashboard)
 
 ## Features
 
