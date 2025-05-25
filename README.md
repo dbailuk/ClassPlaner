@@ -115,7 +115,7 @@ Please adhere to the existing code style and write tests for new functionality.
 
 ## License
 
-This project is released under the MIT License. See [LICENSE](LICENSE) for details.
+This project is released under the MIT License. See [LICENSE](https://opensource.org/license/mit) for details.
 
 ---
 
