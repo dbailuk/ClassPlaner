@@ -7,17 +7,35 @@ from app.models import (
 
 
 def generate_schedule(user_id):
-    # 1) Load data
-    # Assignments
+    # 1) Load assignments and metadata
     assigns = ScheduleAssignment.query.filter_by(user_id=user_id).all()
+    # Load teacher objects for preferences
+    teacher_objs = {t.id: t for t in Teacher.query.filter_by(user_id=user_id).all()}
+
+    # Build teacher preference lookups (days 1-5, period IDs)
+    days = list(range(1, 6))
+    all_periods = Period.query.filter_by(user_id=user_id).all()
+    period_ids = [p.id for p in all_periods]
+
+    teacher_pref_days = {}
+    teacher_pref_periods = {}
+    for t_id, t in teacher_objs.items():
+        if t.preferred_days:
+            teacher_pref_days[t_id] = list(map(int, t.preferred_days.split(',')))
+        else:
+            teacher_pref_days[t_id] = days
+        if t.preferred_periods:
+            teacher_pref_periods[t_id] = list(map(int, t.preferred_periods.split(',')))
+        else:
+            teacher_pref_periods[t_id] = period_ids
+
+    # Build assignment dicts
     assignments = []
     for a in assigns:
-        allowed = []
         if a.class_group.allowed_periods:
-            allowed = [int(p) for p in a.class_group.allowed_periods.split(',')]
+            group_allowed = list(map(int, a.class_group.allowed_periods.split(',')))
         else:
-            # if no restriction, all periods
-            allowed = [p.id for p in Period.query.filter_by(user_id=user_id)]
+            group_allowed = period_ids.copy()
         assignments.append({
             'id': a.id,
             'group': a.class_group_id,
@@ -25,33 +43,37 @@ def generate_schedule(user_id):
             'teacher': a.teacher_id,
             'hours': a.hours_per_week,
             'room': a.room_id or a.class_group.default_room_id,
-            'allowed_periods': allowed
+            'group_allowed': group_allowed
         })
 
-    # Period slots: days 1-5 and period ids
-    periods = Period.query.filter_by(user_id=user_id).order_by(Period.start_time).all()
-    period_ids = [p.id for p in periods]
-    days = list(range(1,6))
-
-    # Teachers
-    t_rows = Teacher.query.filter_by(user_id=user_id).all()
-    teachers = {t.id: t for t in t_rows}
-
-    # 2) Build model
+    # 2) Build CP-SAT model
     model = cp_model.CpModel()
-    x = {}  # x[a_id, d, p] boolean
-    for a in assignments:
-        for d in days:
-            for p in period_ids:
-                if p in a['allowed_periods']:
-                    x[(a['id'], d, p)] = model.NewBoolVar(f"x_{a['id']}_{d}_{p}")
+    x = {}  # decision var x[(assignment_id, day, period)]
 
-    # 2.1 coverage: each assignment gets exactly its hours
+    # Create variables with both class-group and teacher hard constraints
     for a in assignments:
-        vars_ = [x[(a['id'], d, p)]
-                 for d in days for p in period_ids
-                 if (a['id'], d, p) in x]
-        model.Add(sum(vars_) == a['hours'])
+        t_id = a['teacher']
+        # determine allowed days and periods per teacher preferences
+        if t_id and t_id in teacher_pref_days:
+            allowed_days = teacher_pref_days[t_id]
+        else:
+            allowed_days = days
+        if t_id and t_id in teacher_pref_periods:
+            allowed_periods = teacher_pref_periods[t_id]
+        else:
+            allowed_periods = period_ids
+        # intersect with group_allowed
+        allowed_periods = [p for p in a['group_allowed'] if p in allowed_periods]
+
+        for d in allowed_days:
+            for p in allowed_periods:
+                x[(a['id'], d, p)] = model.NewBoolVar(f"x_{a['id']}_{d}_{p}")
+
+    # 2.1 Coverage: each assignment appears exactly its required hours per week
+    for a in assignments:
+        vars_all = [x[(a['id'], d, p)]
+                    for (aid, d, p) in x if aid == a['id']]
+        model.Add(sum(vars_all) == a['hours'])
 
     # 2.2 No same class more than once per day
     for a in assignments:
@@ -60,38 +82,32 @@ def generate_schedule(user_id):
             if vars_day:
                 model.Add(sum(vars_day) <= 1)
 
-    # 2.3 no double booking: group/teacher/room
+    # 2.3 No double-booking: group, teacher, room per slot
     for d in days:
         for p in period_ids:
-            # group conflict
+            # class group
             for g in set(a['group'] for a in assignments):
-                vars_g = [x[(a['id'], d, p)] for a in assignments
-                          if a['group']==g and (a['id'],d,p) in x]
+                vars_g = [x[(a['id'], d, p)] for a in assignments if a['group']==g and (a['id'], d, p) in x]
                 if vars_g:
                     model.Add(sum(vars_g) <= 1)
-            # teacher conflict
-            for t in [a['teacher'] for a in assignments if a['teacher']]:
-                vars_t = [x[(a['id'], d, p)] for a in assignments
-                          if a['teacher']==t and (a['id'],d,p) in x]
+            # teacher
+            for t_id in teacher_objs.keys():
+                vars_t = [x[(a['id'], d, p)] for a in assignments if a['teacher']==t_id and (a['id'], d, p) in x]
                 if vars_t:
                     model.Add(sum(vars_t) <= 1)
-            # room conflict
+            # room
             for r in set(a['room'] for a in assignments):
-                vars_r = [x[(a['id'], d, p)] for a in assignments
-                          if a['room']==r and (a['id'],d,p) in x]
+                vars_r = [x[(a['id'], d, p)] for a in assignments if a['room']==r and (a['id'], d, p) in x]
                 if vars_r:
                     model.Add(sum(vars_r) <= 1)
 
-    # 2.4 teacher max hours
-    for t_id, teacher in teachers.items():
-        vars_t = [x[(a['id'], d, p)] for a in assignments
-                  for d in days for p in period_ids
-                  if a['teacher']==t_id and (a['id'],d,p) in x]
+    # 2.4 Teacher max weekly hours
+    for t_id, teacher in teacher_objs.items():
+        vars_t = [x[(a['id'], d, p)]
+                  for a in assignments
+                  for (aid, d, p) in x if aid == a['id'] and a['teacher']==t_id]
         if vars_t:
             model.Add(sum(vars_t) <= teacher.week_hours)
-
-    # 2.5 optional: teacher preferences
-    # (not implemented here)
 
     # 3) Solve
     solver = cp_model.CpSolver()
@@ -102,17 +118,17 @@ def generate_schedule(user_id):
 
     # 4) Extract schedule
     schedule = []
-    for a in assignments:
-        for d in days:
-            for p in period_ids:
-                if (a['id'], d, p) in x and solver.Value(x[(a['id'],d,p)])==1:
-                    schedule.append({
-                        'assignment_id': a['id'],
-                        'group_id': a['group'],
-                        'subject_id': a['subject'],
-                        'teacher_id': a['teacher'],
-                        'room_id': a['room'],
-                        'period_id': p,
-                        'weekday': d
-                    })
+    for (aid, d, p), var in x.items():
+        if solver.Value(var) == 1:
+            # find assignment a
+            a = next(a for a in assignments if a['id']==aid)
+            schedule.append({
+                'assignment_id': aid,
+                'group_id': a['group'],
+                'subject_id': a['subject'],
+                'teacher_id': a['teacher'],
+                'room_id': a['room'],
+                'period_id': p,
+                'weekday': d
+            })
     return True, schedule
