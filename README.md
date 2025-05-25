@@ -85,38 +85,6 @@
 7. **Generate schedule**: on the Dashboard, click "Generate Schedule" to auto-build the week.
 8. **Manual adjustments**: drag any lesson block to a new day/period in the dashboard grid.
 
-## Developer Guide
-
-* **Routes & Forms** live under `app/routes.py` and `app/forms.py`.
-* **Models** are in `app/models.py`.
-* **Schedule logic** in `app/schedule_generator.py`.
-* **Front-end**: templates in `app/templates`, static assets in `app/static`.
-
-### Adding new constraints
-
-* Edit `generate_schedule()` in `schedule_generator.py`:
-
-  * Use `model.Add(...)` for hard constraints.
-  * Add `model.Maximize(...)` for soft objectives.
-
-### Testing
-
-* (Optional) Add unit tests under a `tests/` folder, using pytest and a temporary SQLite database.
-
-## Contributing
-
-1. Fork this repository.
-2. Create a feature branch: `git checkout -b feature-name`.
-3. Commit your changes: `git commit -am 'Add new feature'`.
-4. Push to the branch: `git push origin feature-name`.
-5. Open a Pull Request.
-
-Please adhere to the existing code style and write tests for new functionality.
-
-## License
-
-This project is released under the MIT License. See [LICENSE](https://opensource.org/license/mit) for details.
-
 ---
 
 *Happy scheduling!*
