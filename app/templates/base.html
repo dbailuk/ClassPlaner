@@ -25,6 +25,7 @@
         </ul>
         {% if current_user.is_authenticated %}
         <form action="{{ url_for('logout') }}" method="post" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button class="btn btn-outline-light btn-sm">Logout</button>
         </form>
         {% endif %}

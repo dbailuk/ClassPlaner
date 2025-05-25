@@ -53,7 +53,14 @@ def generate_schedule(user_id):
                  if (a['id'], d, p) in x]
         model.Add(sum(vars_) == a['hours'])
 
-    # 2.2 no double booking: group/teacher/room
+    # 2.2 No same class more than once per day
+    for a in assignments:
+        for d in days:
+            vars_day = [x[(a['id'], d, p)] for p in period_ids if (a['id'], d, p) in x]
+            if vars_day:
+                model.Add(sum(vars_day) <= 1)
+
+    # 2.3 no double booking: group/teacher/room
     for d in days:
         for p in period_ids:
             # group conflict
@@ -75,7 +82,7 @@ def generate_schedule(user_id):
                 if vars_r:
                     model.Add(sum(vars_r) <= 1)
 
-    # 2.3 teacher max hours
+    # 2.4 teacher max hours
     for t_id, teacher in teachers.items():
         vars_t = [x[(a['id'], d, p)] for a in assignments
                   for d in days for p in period_ids
@@ -83,7 +90,7 @@ def generate_schedule(user_id):
         if vars_t:
             model.Add(sum(vars_t) <= teacher.week_hours)
 
-    # 2.4 optional: teacher preferences as soft constraints
+    # 2.5 optional: teacher preferences
     # (not implemented here)
 
     # 3) Solve
