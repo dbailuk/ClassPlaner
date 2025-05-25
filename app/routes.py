@@ -521,7 +521,7 @@ def add_schedule_assignment():
         (s.id, s.name)
         for s in Subject.query.filter_by(user_id=current_user.id)
     ]
-    form.teacher_id.choices = [(0, "No Specific Teacher")] + [
+    form.teacher_id.choices = [
         (t.id, t.name)
         for t in Teacher.query.filter_by(user_id=current_user.id)
     ]

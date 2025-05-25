@@ -81,7 +81,7 @@ class ScheduleAssignmentForm(FlaskForm):
         'Subject', coerce=int, validators=[DataRequired()]
     )
     teacher_id = SelectField(
-        'Teacher (Optional)',
+        'Teacher',
         coerce=int,
         choices=[],
         validators=[Optional()]
