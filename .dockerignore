@@ -1,0 +1,10 @@
+# ignore venv and cache
+venv
+__pycache__/
+.env
+# ignore git files
+.git
+.gitignore
+
+# ignore local db
+instance
