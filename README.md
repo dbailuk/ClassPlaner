@@ -18,7 +18,7 @@
 
 ## Technologies
 
-* Python 3.13
+* Python
 * Flask & Flask-WTF, Flask-Login, Flask-Migrate, Flask-Babel
 * SQLAlchemy for ORM with SQLite
 * Google OR-Tools CP-SAT solver
