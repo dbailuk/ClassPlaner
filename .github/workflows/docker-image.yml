@@ -1,0 +1,38 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Log in to Docker Hub
+      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      
+    - name: Build the Docker image
+      run: docker build --pull -t "${{ secrets.DOCKER_USERNAME }}"/classplaner:latest .
+      
+    - name: Push image to repo 
+      run: docker push "${{ secrets.DOCKER_USERNAME }}"/classplaner:latest
+      
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        script: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker pull ${{ secrets.DOCKER_USERNAME }}/classplaner:latest
+          docker stop classplaner || true
+          docker rm classplaner || true
+          docker run -d --env-file /home/ec2-user/classplaner/.env -p 80:5000 --name classplaner ${{ secrets.DOCKER_USERNAME }}/classplaner:latest
+          docker image prune -f
