@@ -17,8 +17,8 @@ class Teacher(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     week_hours = db.Column(db.Integer, nullable=False)
-    preferred_days = db.Column(db.Text, nullable=True)  # Comma-separated day numbers (1-5)
-    preferred_periods = db.Column(db.Text, nullable=True)  # Comma-separated period IDs
+    preferred_days = db.Column(db.Text, nullable=True)
+    preferred_periods = db.Column(db.Text, nullable=True)
 
     user = db.relationship('User', backref=db.backref('teachers', lazy=True))
 
