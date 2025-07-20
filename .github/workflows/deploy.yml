@@ -34,5 +34,5 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/classplaner:latest
           docker stop classplaner || true
           docker rm classplaner || true
-          docker run -d --env-file /home/ec2-user/classplaner/.env -p 80:5000 --name classplaner ${{ secrets.DOCKER_USERNAME }}/classplaner:latest
+          docker run -d --env-file /home/ec2-user/classplaner/.env -p 5000:5000 --name classplaner ${{ secrets.DOCKER_USERNAME }}/classplaner:latest
           docker image prune -f
