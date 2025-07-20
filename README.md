@@ -1,6 +1,7 @@
 # ClassPlaner
 
-**ClassPlaner** is a Flask-based web application that helps schools and administrators automatically generate and manage weekly class timetables. It supports defining class groups, subjects, teachers (with working hours and preferences), rooms, and periods. Using a CP-SAT solver (Google OR-Tools), it produces conflict-free schedules that respect all hard constraints, and offers a drag-and-drop interface for manual adjustments.
+**ClassPlaner** is a Flask-based web application that helps schools and administrators automatically generate and manage weekly class timetables. It supports defining class groups, subjects, teachers (with working hours and preferences), rooms, and periods. Using a CP-SAT solver (Google OR-Tools), it produces conflict-free schedules that respect all hard constraints, and offers a drag-and-drop interface for manual adjustments. 
+Link - [classplaner.online](classplaner.online)
 
 ## Features
 
@@ -18,14 +19,14 @@
 
 ## Technologies
 
-* Python
-* Flask & Flask-WTF, Flask-Login, Flask-Migrate, Flask-Babel
-* SQLAlchemy for ORM with SQLite
-* Google OR-Tools CP-SAT solver
-* Bootstrap 5 for styling
-* HTML5 Drag & Drop + Fetch API for interactive timetable
+* Language & Frameworks: Python 3.13, Flask, SQLAlchemy, Flask-Migrate, Flask-Babel
+* Solver: Google OR-Tools CP‑SAT
+* Frontend: Bootstrap 5, HTML5 Drag & Drop, Fetch API
+* Containerization: Docker (multi‑stage builds, environment variables)
+* Hosting: AWS EC2, Amazon RDS PostgreSQL
+* CI/CD: GitHub Actions for automated build, test, push, and remote deployment
 
-## Installation
+## Local development
 
 1. **Clone the repo**
 
@@ -34,18 +35,20 @@
    cd ClassPlaner
    ```
 
-2. **Create & activate a virtual environment**
+2. **Create a virtual environment and install dependencies:**
 
    ```bash
    python -m venv venv
    source venv/bin/activate        # macOS/Linux
    venv\Scripts\activate         # Windows
+   pip install -r requirements.txt
    ```
-
-3. **Install dependencies**
+3. **Copy .env.example to .env and customize:**
 
    ```bash
-   pip install -r requirements.txt
+   SECRET_KEY=dev-secret-key
+   DATABASE_URL=sqlite:///classplaner.db
+   FLASK_ENV=development
    ```
 
 4. **Initialize the database**
@@ -66,12 +69,6 @@
 
 ## Configuration
 
-* All settings live in `app/__init__.py`. Customize:
-
-  * `SECRET_KEY`
-  * `SQLALCHEMY_DATABASE_URI`
-  * `BABEL_DEFAULT_LOCALE`
-
 * To change solver timeout or add soft/weighted preferences, see `app/schedule_generator.py`.
 
 ## Usage
@@ -84,6 +81,11 @@
 6. **Assign schedule slots**: for each class-group/subject, set hours per week, and optional teacher or room override.
 7. **Generate schedule**: on the Dashboard, click "Generate Schedule" to auto-build the week.
 8. **Manual adjustments**: drag any lesson block to a new day/period in the dashboard grid.
+
+## Future Enhancements
+Possibility to import schedule to pdf
+Ukrainian language
+
 
 ---
 
