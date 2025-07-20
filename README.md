@@ -83,9 +83,8 @@ Link - [classplaner.online](classplaner.online)
 8. **Manual adjustments**: drag any lesson block to a new day/period in the dashboard grid.
 
 ## Future Enhancements
-Possibility to import schedule to pdf
-Ukrainian language
-
+1. Possibility to import schedule to pdf
+2. Ukrainian language
 
 ---
 
